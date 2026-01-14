@@ -1,6 +1,6 @@
 {
   "name": "vibe-dashboard",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Display your Claude Code (vibe coding) stats on GitHub profile",
   "type": "module",
   "main": "src/index.js",

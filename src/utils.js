@@ -120,7 +120,7 @@ export function getDefaultConfig() {
       dailyAverage: true,
       lastUpdated: true
     },
-    chartDays: 7,
+    chartDays: 14,
     language: 'en',
     currencySymbol: '$',
     sources: []  // Array of remote URLs or local paths to merge

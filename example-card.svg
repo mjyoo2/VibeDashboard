@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="374" viewBox="0 0 900 374">
+  <style>
+    .title { font: 600 20px 'Segoe UI', Ubuntu, Sans-Serif; fill: #c9d1d9; }
+    .stat-label { font: 400 13px 'Segoe UI', Ubuntu, Sans-Serif; fill: #8b949e; }
+    .stat-value { font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif; fill: #c9d1d9; }
+    .stat-value-small { font: 600 14px 'Segoe UI', Ubuntu, Sans-Serif; fill: #c9d1d9; }
+    .section-title { font: 600 14px 'Segoe UI', Ubuntu, Sans-Serif; fill: #8b949e; }
+    .model-label { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: #8b949e; }
+    .footer { font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: #8b949e; }
+  </style>
+
+  <!-- Background -->
+  <rect x="0.5" y="0.5" width="899" height="373" rx="4.5" fill="#0d1117" stroke="#30363d"/>
+
+  <!-- Title -->
+  <text x="25" y="35" class="title">🎸 Vibe Coding Dashboard</text>
+
+  <!-- Stats Row -->
+  <g transform="translate(25, 60)">
+    <g>
+      <text class="stat-label">Total Tokens</text>
+      <text y="22" class="stat-value">920.8M</text>
+    </g>
+    <g transform="translate(150, 0)">
+      <text class="stat-label">Total Cost</text>
+      <text y="22" class="stat-value">$810.77</text>
+    </g>
+    <g transform="translate(320, 0)">
+      <text class="stat-label">📅 Today</text>
+      <text y="22" class="stat-value-small">87.8M / $67.12</text>
+    </g>
+    <g transform="translate(510, 0)">
+      <text class="stat-label">📊 This Week</text>
+      <text y="22" class="stat-value-small">630.3M / $509.63</text>
+    </g>
+    <g transform="translate(710, 0)">
+      <text class="stat-label">📈 This Month</text>
+      <text y="22" class="stat-value-small">916.1M / $808.09</text>
+    </g>
+  </g>
+  <!-- Weekly Usage Chart -->
+  <g transform="translate(25, 105)">
+    <rect x="0" y="0" width="850" height="100" rx="4" fill="#161b22"/>
+    <text x="45" y="15" text-anchor="end" class="model-label">123.1M</text>
+    <text x="45" y="52.5" text-anchor="end" class="model-label">61.5M</text>
+    <text x="45" y="90" text-anchor="end" class="model-label">0</text>
+    <line x1="50" y1="5" x2="50" y2="80" stroke="#30363d" stroke-width="1"/>
+    <rect x="60" y="53.65888162054986" width="49" height="26.34111837945014" rx="3" fill="#58a6ff"/>
+    <text x="84.5" y="95" text-anchor="middle" class="model-label">01/01</text>
+    <rect x="115" y="46.87634546703341" width="49" height="33.12365453296659" rx="3" fill="#58a6ff"/>
+    <text x="139.5" y="95" text-anchor="middle" class="model-label">01/02</text>
+    <rect x="170" y="72.9037793157076" width="49" height="7.096220684292403" rx="3" fill="#58a6ff"/>
+    <text x="194.5" y="95" text-anchor="middle" class="model-label">01/03</text>
+    <rect x="225" y="39.97451784266229" width="49" height="40.02548215733771" rx="3" fill="#58a6ff"/>
+    <text x="249.5" y="95" text-anchor="middle" class="model-label">01/04</text>
+    <rect x="280" y="65.09724943299688" width="49" height="14.902750567003123" rx="3" fill="#58a6ff"/>
+    <text x="304.5" y="95" text-anchor="middle" class="model-label">01/05</text>
+    <rect x="335" y="27.610283509971637" width="49" height="52.38971649002836" rx="3" fill="#58a6ff"/>
+    <text x="359.5" y="95" text-anchor="middle" class="model-label">01/06</text>
+    <rect x="390" y="5" width="49" height="75" rx="3" fill="#58a6ff"/>
+    <text x="414.5" y="95" text-anchor="middle" class="model-label">01/07</text>
+    <rect x="445" y="60.02652693135516" width="49" height="19.973473068644843" rx="3" fill="#58a6ff"/>
+    <text x="469.5" y="95" text-anchor="middle" class="model-label">01/08</text>
+    <rect x="500" y="24.50639411206597" width="49" height="55.49360588793403" rx="3" fill="#58a6ff"/>
+    <text x="524.5" y="95" text-anchor="middle" class="model-label">01/09</text>
+    <rect x="555" y="41.51328676007902" width="49" height="38.48671323992098" rx="3" fill="#58a6ff"/>
+    <text x="579.5" y="95" text-anchor="middle" class="model-label">01/10</text>
+    <rect x="610" y="39.033640390627895" width="49" height="40.966359609372105" rx="3" fill="#58a6ff"/>
+    <text x="634.5" y="95" text-anchor="middle" class="model-label">01/11</text>
+    <rect x="665" y="35.23606846283499" width="49" height="44.76393153716501" rx="3" fill="#58a6ff"/>
+    <text x="689.5" y="95" text-anchor="middle" class="model-label">01/12</text>
+    <rect x="720" y="24.020267624514467" width="49" height="55.97973237548553" rx="3" fill="#58a6ff"/>
+    <text x="744.5" y="95" text-anchor="middle" class="model-label">01/13</text>
+    <rect x="775" y="26.50896967728798" width="49" height="53.49103032271202" rx="3" fill="#58a6ff"/>
+    <text x="799.5" y="95" text-anchor="middle" class="model-label">01/14</text>
+  </g>
+  <!-- Model Breakdown -->
+  <g transform="translate(25, 220)">
+    <text class="section-title">🤖 Model Usage</text>
+    <g transform="translate(0, 18)">
+      <rect x="0" y="2" width="670" height="10" rx="3" fill="#21262d"/>
+      <rect x="0" y="2" width="670" height="10" rx="3" fill="#58a6ff"/>
+      <text x="680" y="11" class="model-label">opus-4 100% ($806.91)</text>
+    </g>
+    <g transform="translate(0, 38)">
+      <rect x="0" y="2" width="670" height="10" rx="3" fill="#21262d"/>
+      <rect x="0" y="2" width="0" height="10" rx="3" fill="#58a6ff"/>
+      <text x="680" y="11" class="model-label">sonnet-4 0% ($2.94)</text>
+    </g>
+    <g transform="translate(0, 58)">
+      <rect x="0" y="2" width="670" height="10" rx="3" fill="#21262d"/>
+      <rect x="0" y="2" width="0" height="10" rx="3" fill="#58a6ff"/>
+      <text x="680" y="11" class="model-label">haiku-4 0% ($0.93)</text>
+    </g>
+  </g>
+  <text x="25" y="354" class="footer">Updated: 2026-01-14 02:50 UTC • Powered by VibeDashboard</text>
+</svg>

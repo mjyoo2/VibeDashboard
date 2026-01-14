@@ -183,7 +183,7 @@ export function generateSVG(data, config) {
 
   const theme = themes[themeName] || themes.dark;
   const width = 900;
-  const baseHeight = 280;
+  const baseHeight = 320;
   const modelCount = Math.min(models.length, 5);
   const height = layout === 'detailed' ? baseHeight + 50 : baseHeight + (modelCount * 18);
   const topModel = getTopModel(models);
@@ -282,12 +282,12 @@ export function generateSVG(data, config) {
   const showChart = showItems.periodChart ?? showItems.weeklyChart;  // backward compat
   if (showChart && dailyUsage.length > 0) {
     const chartData = dailyUsage.slice(0, chartDays).reverse();
-    svg += generateSVGChart(chartData, theme, 25, 105, 850, 60);
+    svg += generateSVGChart(chartData, theme, 25, 105, 850, 100);
   }
 
   // Model Breakdown
   if (showItems.modelBreakdown && models.length > 0) {
-    const yOffset = showChart ? 180 : 105;
+    const yOffset = showChart ? 220 : 105;
     svg += generateSVGModelBreakdown(models.slice(0, 5), theme, 25, yOffset, 850, currencySymbol);
   }
 
@@ -318,17 +318,32 @@ function generateSVGChart(data, theme, x, y, width, height) {
   if (!data || data.length === 0) return '';
 
   const maxTokens = Math.max(...data.map((d) => d.tokens));
-  const barWidth = Math.floor((width - 20) / data.length) - 6;
-  const maxBarHeight = height - 20;
+  const yAxisWidth = 50;
+  const chartWidth = width - yAxisWidth;
+  const barWidth = Math.floor((chartWidth - 20) / data.length) - 6;
+  const maxBarHeight = height - 25;
 
   let chart = `
   <!-- Weekly Usage Chart -->
   <g transform="translate(${x}, ${y})">
     <rect x="0" y="0" width="${width}" height="${height}" rx="4" fill="${theme.chartBg}"/>`;
 
+  // Y-axis labels
+  const yLabels = [maxTokens, maxTokens / 2, 0];
+  yLabels.forEach((val, i) => {
+    const labelY = 5 + (i * (maxBarHeight / 2)) + 10;
+    chart += `
+    <text x="${yAxisWidth - 5}" y="${labelY}" text-anchor="end" class="model-label">${formatTokens(val)}</text>`;
+  });
+
+  // Y-axis line
+  chart += `
+    <line x1="${yAxisWidth}" y1="5" x2="${yAxisWidth}" y2="${maxBarHeight + 5}" stroke="${theme.border}" stroke-width="1"/>`;
+
+  // Bars
   data.forEach((day, i) => {
     const barHeight = maxTokens > 0 ? Math.max((day.tokens / maxTokens) * maxBarHeight, 2) : 2;
-    const barX = 10 + i * (barWidth + 6);
+    const barX = yAxisWidth + 10 + i * (barWidth + 6);
     const barY = maxBarHeight - barHeight + 5;
 
     chart += `
