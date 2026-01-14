@@ -1,0 +1,44 @@
+{
+  "name": "vibe-dashboard",
+  "version": "1.1.2",
+  "description": "Display your Claude Code (vibe coding) stats on GitHub profile",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "vibe-dashboard": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "npx vitest run",
+    "test:watch": "npx vitest",
+    "test:coverage": "npx vitest run --coverage",
+    "lint": "eslint src tests"
+  },
+  "keywords": [
+    "claude-code",
+    "vibe-coding",
+    "github-profile",
+    "readme-stats",
+    "anthropic",
+    "ccusage"
+  ],
+  "author": "mjyoo2",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mjyoo2/VibeDashboard.git"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  },
+  "files": [
+    "src/**/*",
+    "README.md",
+    "LICENSE"
+  ]
+}

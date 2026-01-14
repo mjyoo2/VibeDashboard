@@ -1,0 +1,57 @@
+name: Update Vibe Dashboard
+
+on:
+  schedule:
+    # Run at 00:00 and 12:00 UTC every day
+    - cron: '0 0,12 * * *'
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    paths:
+      - 'cc.json'  # Trigger when usage data is updated
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install VibeDashboard
+        run: npm install -g vibe-dashboard
+
+      - name: Check for cc.json
+        id: check-data
+        run: |
+          if [ -f "cc.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::cc.json not found. Please run 'ccusage --json > cc.json' and commit."
+          fi
+
+      - name: Generate Dashboard
+        if: steps.check-data.outputs.exists == 'true'
+        run: |
+          vibe-dashboard generate \
+            --config ./vibe-config.json \
+            --input ./cc.json \
+            --output ./README.md \
+            --svg-output ./assets/vibe-card.svg
+
+      - name: Commit and Push
+        if: steps.check-data.outputs.exists == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "VibeDashboard Bot"
+          git add README.md
+          git add assets/vibe-card.svg 2>/dev/null || true
+          git diff --quiet && git diff --staged --quiet || git commit -m "📊 Update Vibe Dashboard [skip ci]"
+          git push

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Environment & Config
+.env
+.env.*
+config.json
+
+# Build output
+dist/
+build/
+
+# Test output
+coverage/
+test-*.svg
+test-*.md
+test-*.json
+merged-test.json
+
+# Sample files
+sample-*.svg
+sample-*.json
+sample-*.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+*.local
