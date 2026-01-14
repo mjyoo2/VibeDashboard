@@ -5,7 +5,7 @@
 const translations = {
   en: {
     title: 'Vibe Coding Stats',
-    dashboardTitle: 'Vibe Coding Dashboard',
+    dashboardTitle: 'VibeDashboard',
     totalTokens: 'Total Tokens',
     totalCost: 'Total Cost',
     dailyAverage: 'Daily Average',
@@ -28,7 +28,7 @@ const translations = {
   },
   ko: {
     title: 'Vibe 코딩 통계',
-    dashboardTitle: 'Vibe 코딩 대시보드',
+    dashboardTitle: 'VibeDashboard',
     totalTokens: '총 토큰',
     totalCost: '총 비용',
     dailyAverage: '일 평균',
@@ -51,7 +51,7 @@ const translations = {
   },
   ja: {
     title: 'Vibe コーディング統計',
-    dashboardTitle: 'Vibe コーディングダッシュボード',
+    dashboardTitle: 'VibeDashboard',
     totalTokens: '総トークン',
     totalCost: '総コスト',
     dailyAverage: '日平均',

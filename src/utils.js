@@ -226,16 +226,19 @@ export function escapeXml(str) {
 
 /**
  * Shorten model name for display
- * @param {string} modelName - Full model name (e.g., "claude-sonnet-4-20250514")
- * @returns {string} Shortened name (e.g., "sonnet-4")
+ * @param {string} modelName - Full model name (e.g., "claude-opus-4-5-20250514")
+ * @returns {string} Shortened name (e.g., "opus-4.5")
  */
 export function shortenModelName(modelName) {
   if (!modelName) return 'unknown';
 
-  // Extract the model type and version
-  const match = modelName.match(/claude-(\w+)-(\d+)/i);
+  // Extract the model type and version (handles 4-5 as 4.5)
+  const match = modelName.match(/claude-(\w+)-(\d+)(?:-(\d+))?-\d{8}/i);
   if (match) {
-    return `${match[1]}-${match[2]}`;
+    const type = match[1];
+    const major = match[2];
+    const minor = match[3];
+    return minor ? `${type}-${major}.${minor}` : `${type}-${major}`;
   }
 
   // Fallback: return last part if no match

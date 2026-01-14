@@ -24,45 +24,21 @@ Display your Claude Code (vibe coding) usage stats on your GitHub profile README
 
 ## Quick Setup
 
-### 1. Install ccusage
+### 1. Create GitHub Profile Repo
 
-First, install [ccusage](https://github.com/ryoppippi/ccusage) to track your Claude Code usage:
+Create a repository with your GitHub username (e.g., `YOUR_USERNAME/YOUR_USERNAME`). This will appear on your GitHub profile.
 
-```bash
-npm install -g ccusage
-```
+### 2. Add Markers to README
 
-### 2. Generate Usage Data
-
-Generate your usage data file:
-
-```bash
-ccusage --json > cc.json
-```
-
-### 3. Add Markers to README
-
-Add these markers to your GitHub profile README where you want the dashboard to appear:
+Add these markers to your profile README where you want the dashboard to appear:
 
 ```markdown
 <!-- VIBE-DASHBOARD:START -->
+![Vibe Dashboard](./vibe-card.svg)
 <!-- VIBE-DASHBOARD:END -->
 ```
 
-### 4. Create Config (Optional)
-
-Create `vibe-config.json` in your repo root:
-
-```json
-{
-  "theme": "dark",
-  "layout": "card",
-  "period": "week",
-  "language": "en"
-}
-```
-
-### 5. Add GitHub Actions Workflow
+### 3. Add GitHub Actions Workflow
 
 Create `.github/workflows/update-dashboard.yml`:
 
@@ -71,10 +47,11 @@ name: Update Vibe Dashboard
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'
+    - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
   push:
     paths:
+      - '*-cc.json'
       - 'cc.json'
 
 jobs:
@@ -92,12 +69,15 @@ jobs:
 
       - run: npm install -g vibe-dashboard
 
-      - run: |
-          vibe-dashboard generate \
-            --config ./vibe-config.json \
-            --input ./cc.json \
-            --output ./README.md \
-            --svg-output ./vibe-card.svg
+      - name: Generate dashboard from all sources
+        run: |
+          FILES=$(ls *-cc.json cc.json 2>/dev/null | sort -u | tr '\n' ' ')
+          if [ -n "$FILES" ]; then
+            vibe-dashboard generate \
+              -i $FILES \
+              --output ./README.md \
+              --svg-output ./vibe-card.svg
+          fi
 
       - run: |
           git config --local user.email "action@github.com"
@@ -107,13 +87,26 @@ jobs:
           git push
 ```
 
-### 6. Update Your Data
+### 4. Set Up Auto-Sync on Each Machine
 
-Update your stats anytime by running:
+On each machine where you use Claude Code, just tell Claude Code:
 
-```bash
-ccusage --json > cc.json
-git add cc.json && git commit -m "Update usage data" && git push
+```
+"Follow https://github.com/mjyoo2/VibeDashboard#multi-server-setup and set up this server as [server-name]"
+```
+
+For manual setup, see [Multi-Server Setup](#multi-server-setup).
+
+### 5. (Optional) Create Config
+
+Create `vibe-config.json` for customization:
+
+```json
+{
+  "theme": "dark",
+  "layout": "card",
+  "language": "en"
+}
 ```
 
 ## CLI Commands
@@ -167,13 +160,13 @@ If you use Claude Code on multiple machines, you can automatically collect and m
 Just tell Claude Code:
 
 ```
-"Follow VibeDashboard README.md and set up this server as [server-name]"
+"Follow https://github.com/mjyoo2/VibeDashboard#multi-server-setup and set up this server as [server-name]"
 ```
 
 or in Korean:
 
 ```
-"VibeDashboard README.md를 보고 이 서버를 [서버이름]으로 세팅해줘"
+"https://github.com/mjyoo2/VibeDashboard#multi-server-setup 를 보고 이 서버를 [서버이름]으로 세팅해줘"
 ```
 
 > **For Claude Code AI:** Follow these steps exactly to set up multi-server sync for the user.
@@ -320,67 +313,6 @@ Or manually via Task Scheduler GUI:
    - Program: `bash.exe`
    - Arguments: `-c "$HOME/YOUR_USERNAME/sync-usage.sh"`
 
-### Step 6: Update GitHub Actions Workflow
-
-Replace the contents of `.github/workflows/update-dashboard.yml` in your profile repo:
-
-```yaml
-name: Update Vibe Dashboard
-
-on:
-  schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
-  workflow_dispatch:       # Manual trigger
-  push:
-    paths:
-      - '*-cc.json'        # Any server data file
-      - 'cc.json'          # Single file fallback
-
-jobs:
-  update-dashboard:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install vibe-dashboard
-        run: npm install -g vibe-dashboard
-
-      - name: Generate dashboard from all sources
-        run: |
-          # Collect all cc.json files
-          FILES=$(ls *-cc.json cc.json 2>/dev/null | sort -u | tr '\n' ' ')
-          echo "Found data files: $FILES"
-
-          if [ -n "$FILES" ]; then
-            vibe-dashboard generate \
-              -i $FILES \
-              --output ./README.md \
-              --svg-output ./vibe-card.svg
-          else
-            echo "No data files found"
-            exit 1
-          fi
-
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "VibeDashboard Bot"
-          git add README.md vibe-card.svg
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "📊 Update Vibe Dashboard [skip ci]"
-            git push
-          fi
-```
-
 ### Example: Complete Setup with 2 Servers
 
 **On Desktop (Windows/WSL):**
@@ -491,7 +423,7 @@ Period is shown in the title:
 | `period` | string | `"all"` | `"day"`, `"week"`, `"month"`, or `"all"` |
 | `language` | string | `"en"` | `"en"`, `"ko"`, or `"ja"` |
 | `currencySymbol` | string | `"$"` | Currency symbol for costs |
-| `chartDays` | number | `7` | Days to show in chart (7, 14, 30) |
+| `chartDays` | number | `14` | Days to show in chart (7, 14, 30) |
 | `showItems.totalTokens` | boolean | `true` | Show total tokens |
 | `showItems.totalCost` | boolean | `true` | Show total cost |
 | `showItems.periodChart` | boolean | `true` | Show usage chart |
@@ -514,7 +446,7 @@ Period is shown in the title:
     "dailyAverage": true,
     "lastUpdated": true
   },
-  "chartDays": 7,
+  "chartDays": 14,
   "language": "ko",
   "currencySymbol": "$"
 }

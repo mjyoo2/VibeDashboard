@@ -295,7 +295,7 @@ export function generateSVG(data, config) {
   if (showItems.lastUpdated) {
     const updateTime = formatDateTime();
     svg += `
-  <text x="25" y="${height - 20}" class="footer">${escapeXml(t('updated', language))}: ${escapeXml(updateTime)} • Powered by VibeDashboard</text>`;
+  <text x="25" y="${height - 20}" class="footer">${escapeXml(t('updated', language))}: ${escapeXml(updateTime)} • Powered by <a href="https://github.com/mjyoo2/VibeDashboard" target="_blank">VibeDashboard</a></text>`;
   }
 
   svg += `

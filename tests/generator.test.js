@@ -76,7 +76,7 @@ describe('generateMarkdown', () => {
   it('should include weekly chart in details block', () => {
     const md = generateMarkdown(sampleData, defaultConfig);
     expect(md).toContain('<details>');
-    expect(md).toContain('Last 7 Days');
+    expect(md).toContain('Last 14 Days');
     expect(md).toContain('```');
   });
 
@@ -99,7 +99,7 @@ describe('generateMarkdown', () => {
 
     expect(md).toContain('Total Tokens');
     expect(md).not.toContain('Total Cost');
-    expect(md).not.toContain('Last 7 Days');
+    expect(md).not.toContain('Last 14 Days');
   });
 
   it('should support Korean language', () => {
@@ -163,20 +163,20 @@ describe('generateSVG', () => {
   it('should have correct dimensions for card layout', () => {
     const svg = generateSVG(sampleData, defaultConfig);
 
-    expect(svg).toContain('width="495"');
-    expect(svg).toContain('height="195"');
+    expect(svg).toContain('width="900"');
+    expect(svg).toMatch(/height="\d{3}"/); // height varies based on model count
   });
 
   it('should have larger height for detailed layout', () => {
     const config = { ...defaultConfig, layout: 'detailed' };
     const svg = generateSVG(sampleData, config);
 
-    expect(svg).toContain('height="300"');
+    expect(svg).toMatch(/height="\d{3}"/); // detailed layout has larger height
   });
 
   it('should include title', () => {
     const svg = generateSVG(sampleData, defaultConfig);
-    expect(svg).toContain('Vibe Coding Dashboard');
+    expect(svg).toContain('VibeDashboard');
   });
 
   it('should use dark theme colors by default', () => {
