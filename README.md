@@ -227,7 +227,12 @@ if git diff --quiet && git diff --staged --quiet; then
     echo "No changes to commit"
 else
     git commit -m "📊 Update ${SERVER_NAME} usage data"
-    git push origin main
+    # Push with retry on failure (handles GitHub Actions conflicts)
+    if ! git push origin main 2>/dev/null; then
+        echo "Push failed, pulling and retrying..."
+        git pull --rebase origin main
+        git push origin main
+    fi
     echo "✅ Successfully synced ${SERVER_NAME} data"
 fi
 EOF
@@ -330,8 +335,10 @@ cd "$REPO_DIR" || exit 1
 git pull origin main
 ccusage --json > "${SERVER_NAME}-cc.json"
 git add "${SERVER_NAME}-cc.json"
-git diff --quiet && git diff --staged --quiet || git commit -m "📊 Update ${SERVER_NAME} usage data"
-git push origin main
+if ! git diff --quiet || ! git diff --staged --quiet; then
+    git commit -m "📊 Update ${SERVER_NAME} usage data"
+    git push origin main || { git pull --rebase origin main && git push origin main; }
+fi
 EOF
 
 chmod +x sync-usage.sh
@@ -353,8 +360,10 @@ cd "$REPO_DIR" || exit 1
 git pull origin main
 ccusage --json > "${SERVER_NAME}-cc.json"
 git add "${SERVER_NAME}-cc.json"
-git diff --quiet && git diff --staged --quiet || git commit -m "📊 Update ${SERVER_NAME} usage data"
-git push origin main
+if ! git diff --quiet || ! git diff --staged --quiet; then
+    git commit -m "📊 Update ${SERVER_NAME} usage data"
+    git push origin main || { git pull --rebase origin main && git push origin main; }
+fi
 EOF
 
 chmod +x sync-usage.sh
