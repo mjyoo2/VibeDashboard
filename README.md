@@ -1,6 +1,6 @@
 # 🎸 VibeDashboard
 
-Display your Claude Code (vibe coding) usage stats on your GitHub profile README!
+Display your Claude Code & OpenCode (vibe coding) usage stats on your GitHub profile README!
 
 [![npm version](https://badge.fury.io/js/vibe-dashboard.svg)](https://www.npmjs.com/package/vibe-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -15,6 +15,7 @@ Display your Claude Code (vibe coding) usage stats on your GitHub profile README
 - ⚡ **Zero Server** - 100% GitHub Actions, no server needed
 - 📅 **Period Filtering** - View stats by day, week, month, or all time
 - 🔗 **Multi-Server Support** - Merge data from multiple machines
+- 🤖 **Multi-Tool Support** - Supports both Claude Code (ccusage) and OpenCode (@ccusage/opencode)
 
 ## Preview
 
@@ -192,6 +193,7 @@ cat > ~/YOUR_USERNAME/sync-usage.sh << 'EOF'
 #!/bin/bash
 #############################################
 # VibeDashboard Auto-Sync Script
+# Supports both Claude Code and OpenCode
 #
 # CONFIGURATION - Edit these values:
 GITHUB_USERNAME="YOUR_USERNAME"      # Your GitHub username
@@ -199,6 +201,7 @@ SERVER_NAME="desktop"                # Unique name: desktop, laptop, server1, wo
 #############################################
 
 REPO_DIR="$HOME/${GITHUB_USERNAME}"
+OUTPUT_FILE="${SERVER_NAME}-cc.json"
 
 # Navigate to repo
 cd "$REPO_DIR" || { echo "Error: Repo not found at $REPO_DIR"; exit 1; }
@@ -206,27 +209,100 @@ cd "$REPO_DIR" || { echo "Error: Repo not found at $REPO_DIR"; exit 1; }
 # Pull latest changes
 git pull origin main
 
-# Check if ccusage is installed
-if ! command -v ccusage &> /dev/null; then
-    echo "Error: ccusage not installed. Run: npm install -g ccusage"
+# Collect usage data from available sources
+CLAUDE_DATA=""
+OPENCODE_DATA=""
+
+# Try Claude Code (ccusage)
+if command -v ccusage &> /dev/null; then
+    CLAUDE_DATA=$(ccusage --json 2>/dev/null)
+    if [ -n "$CLAUDE_DATA" ] && [ "$CLAUDE_DATA" != "null" ]; then
+        echo "✓ Claude Code data collected"
+    else
+        CLAUDE_DATA=""
+    fi
+fi
+
+# Try OpenCode (@ccusage/opencode)
+if command -v npx &> /dev/null; then
+    OPENCODE_DATA=$(npx @ccusage/opencode@latest --json 2>/dev/null)
+    if [ -n "$OPENCODE_DATA" ] && [ "$OPENCODE_DATA" != "null" ]; then
+        echo "✓ OpenCode data collected"
+    else
+        OPENCODE_DATA=""
+    fi
+fi
+
+# Check if we have any data
+if [ -z "$CLAUDE_DATA" ] && [ -z "$OPENCODE_DATA" ]; then
+    echo "Error: No usage data found. Install ccusage or use OpenCode."
     exit 1
 fi
 
-# Generate usage data
-ccusage --json > "${SERVER_NAME}-cc.json"
+# Merge data using node (handles both sources)
+node -e "
+const claude = $( [ -n \"$CLAUDE_DATA\" ] && echo \"$CLAUDE_DATA\" || echo 'null' );
+const opencode = $( [ -n \"$OPENCODE_DATA\" ] && echo \"$OPENCODE_DATA\" || echo 'null' );
+
+function mergeData(a, b) {
+    if (!a) return b;
+    if (!b) return a;
+    
+    const merged = {
+        daily: [],
+        totals: {
+            inputTokens: (a.totals?.inputTokens || 0) + (b.totals?.inputTokens || 0),
+            outputTokens: (a.totals?.outputTokens || 0) + (b.totals?.outputTokens || 0),
+            cacheCreationTokens: (a.totals?.cacheCreationTokens || 0) + (b.totals?.cacheCreationTokens || 0),
+            cacheReadTokens: (a.totals?.cacheReadTokens || 0) + (b.totals?.cacheReadTokens || 0),
+            totalTokens: (a.totals?.totalTokens || 0) + (b.totals?.totalTokens || 0),
+            totalCost: (a.totals?.totalCost || 0) + (b.totals?.totalCost || 0)
+        }
+    };
+    
+    // Merge daily data by date
+    const dailyMap = new Map();
+    for (const d of [...(a.daily || []), ...(b.daily || [])]) {
+        const existing = dailyMap.get(d.date);
+        if (existing) {
+            existing.inputTokens += d.inputTokens || 0;
+            existing.outputTokens += d.outputTokens || 0;
+            existing.cacheCreationTokens += d.cacheCreationTokens || 0;
+            existing.cacheReadTokens += d.cacheReadTokens || 0;
+            existing.totalTokens += d.totalTokens || 0;
+            existing.totalCost += d.totalCost || 0;
+            if (d.modelBreakdowns) {
+                existing.modelBreakdowns = existing.modelBreakdowns || [];
+                existing.modelBreakdowns.push(...d.modelBreakdowns);
+            }
+            if (d.modelsUsed) {
+                existing.modelsUsed = [...new Set([...(existing.modelsUsed || []), ...d.modelsUsed])];
+            }
+        } else {
+            dailyMap.set(d.date, { ...d });
+        }
+    }
+    merged.daily = [...dailyMap.values()].sort((a, b) => a.date.localeCompare(b.date));
+    
+    return merged;
+}
+
+const result = mergeData(claude, opencode);
+console.log(JSON.stringify(result, null, 2));
+" > "$OUTPUT_FILE"
 
 # Check if file was created and has content
-if [ ! -s "${SERVER_NAME}-cc.json" ]; then
-    echo "Error: Failed to generate usage data"
+if [ ! -s "$OUTPUT_FILE" ]; then
+    echo "Error: Failed to generate merged usage data"
     exit 1
 fi
 
 # Commit and push
-git add "${SERVER_NAME}-cc.json"
+git add "$OUTPUT_FILE"
 if git diff --quiet && git diff --staged --quiet; then
     echo "No changes to commit"
 else
-    git commit -m "📊 Update ${SERVER_NAME} usage data"
+    git commit -m "📊 Update ${SERVER_NAME} usage data (Claude Code + OpenCode)"
     # Push with retry on failure (handles GitHub Actions conflicts)
     if ! git push origin main 2>/dev/null; then
         echo "Push failed, pulling and retrying..."
@@ -307,7 +383,7 @@ crontab -l
 # Create scheduled task that runs daily at midnight
 $action = New-ScheduledTaskAction -Execute "bash.exe" -Argument "-c '$HOME/YOUR_USERNAME/sync-usage.sh'"
 $trigger = New-ScheduledTaskTrigger -Daily -At 12:00AM
-Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "VibeDashboard Sync" -Description "Sync Claude Code usage to GitHub"
+Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "VibeDashboard Sync" -Description "Sync Claude Code & OpenCode usage to GitHub"
 ```
 
 Or manually via Task Scheduler GUI:
@@ -318,14 +394,17 @@ Or manually via Task Scheduler GUI:
    - Program: `bash.exe`
    - Arguments: `-c "$HOME/YOUR_USERNAME/sync-usage.sh"`
 
-### Example: Complete Setup with 2 Servers
+### Example: Quick Setup (Simplified)
 
-**On Desktop (Windows/WSL):**
+For a quick setup that supports both Claude Code and OpenCode:
+
 ```bash
 cd ~
 git clone https://github.com/YOUR_USERNAME/YOUR_USERNAME.git
 cd YOUR_USERNAME
 
+# Download the full sync script from the Step 2 section above,
+# or use this simplified version for Claude Code only:
 cat > sync-usage.sh << 'EOF'
 #!/bin/bash
 GITHUB_USERNAME="YOUR_USERNAME"
@@ -333,32 +412,36 @@ SERVER_NAME="desktop"
 REPO_DIR="$HOME/${GITHUB_USERNAME}"
 cd "$REPO_DIR" || exit 1
 git pull origin main
-ccusage --json > "${SERVER_NAME}-cc.json"
-git add "${SERVER_NAME}-cc.json"
-if ! git diff --quiet || ! git diff --staged --quiet; then
-    git commit -m "📊 Update ${SERVER_NAME} usage data"
-    git push origin main || { git pull --rebase origin main && git push origin main; }
-fi
-EOF
 
-chmod +x sync-usage.sh
-./sync-usage.sh
-```
+# Collect and merge Claude Code + OpenCode data
+CLAUDE=$(ccusage --json 2>/dev/null || echo '{"daily":[],"totals":{}}')
+OPENCODE=$(npx @ccusage/opencode@latest --json 2>/dev/null || echo '{"daily":[],"totals":{}}')
 
-**On Laptop (Mac):**
-```bash
-cd ~
-git clone https://github.com/YOUR_USERNAME/YOUR_USERNAME.git
-cd YOUR_USERNAME
+node -e "
+const a=$CLAUDE, b=$OPENCODE;
+const dailyMap = new Map();
+for (const d of [...(a.daily||[]),...(b.daily||[])]) {
+  const e = dailyMap.get(d.date) || {date:d.date,inputTokens:0,outputTokens:0,cacheCreationTokens:0,cacheReadTokens:0,totalTokens:0,totalCost:0,modelBreakdowns:[],modelsUsed:[]};
+  e.inputTokens+=d.inputTokens||0; e.outputTokens+=d.outputTokens||0;
+  e.cacheCreationTokens+=d.cacheCreationTokens||0; e.cacheReadTokens+=d.cacheReadTokens||0;
+  e.totalTokens+=d.totalTokens||0; e.totalCost+=d.totalCost||0;
+  if(d.modelBreakdowns) e.modelBreakdowns.push(...d.modelBreakdowns);
+  if(d.modelsUsed) e.modelsUsed=[...new Set([...e.modelsUsed,...d.modelsUsed])];
+  dailyMap.set(d.date,e);
+}
+console.log(JSON.stringify({
+  daily:[...dailyMap.values()].sort((x,y)=>x.date.localeCompare(y.date)),
+  totals:{
+    inputTokens:(a.totals?.inputTokens||0)+(b.totals?.inputTokens||0),
+    outputTokens:(a.totals?.outputTokens||0)+(b.totals?.outputTokens||0),
+    cacheCreationTokens:(a.totals?.cacheCreationTokens||0)+(b.totals?.cacheCreationTokens||0),
+    cacheReadTokens:(a.totals?.cacheReadTokens||0)+(b.totals?.cacheReadTokens||0),
+    totalTokens:(a.totals?.totalTokens||0)+(b.totals?.totalTokens||0),
+    totalCost:(a.totals?.totalCost||0)+(b.totals?.totalCost||0)
+  }
+},null,2));
+" > "${SERVER_NAME}-cc.json"
 
-cat > sync-usage.sh << 'EOF'
-#!/bin/bash
-GITHUB_USERNAME="YOUR_USERNAME"
-SERVER_NAME="laptop"
-REPO_DIR="$HOME/${GITHUB_USERNAME}"
-cd "$REPO_DIR" || exit 1
-git pull origin main
-ccusage --json > "${SERVER_NAME}-cc.json"
 git add "${SERVER_NAME}-cc.json"
 if ! git diff --quiet || ! git diff --staged --quiet; then
     git commit -m "📊 Update ${SERVER_NAME} usage data"
@@ -486,7 +569,8 @@ SVG card + expanded markdown with model breakdown table.
 ## Requirements
 
 - Node.js 20+
-- [ccusage](https://github.com/ryoppippi/ccusage) for generating usage data
+- [ccusage](https://github.com/ryoppippi/ccusage) for Claude Code usage data
+- [@ccusage/opencode](https://www.npmjs.com/package/@ccusage/opencode) for OpenCode usage data (optional)
 - GitHub Actions enabled on your repository
 
 ## Development
@@ -514,6 +598,7 @@ VibeDashboard is **privacy-first**:
 ## Credits
 
 - [ccusage](https://github.com/ryoppippi/ccusage) - Claude Code usage tracking
+- [@ccusage/opencode](https://www.npmjs.com/package/@ccusage/opencode) - OpenCode usage tracking
 - Inspired by [github-readme-stats](https://github.com/anuraghazra/github-readme-stats)
 
 ## License
